@@ -262,11 +262,11 @@ hashed_sesskey=hashlib.sha256(SessionkeyAMAD.encode()).digest()
 
 print('-----Sending gcode file TO AMDT1-----')
 #print(hashed_sessAMkey)
-gcode_file_path ='C:\\Users\\Pikmi\OneDrive\\Desktop\\Research test code\\s1s2 byte comparions 3-ways - files\\Duet_Saeid_thin_wall.gcode' # replace with the file you want to send
-with open(gcode_file_path, 'rb') as f:
-    gcode_file_data = f.read()
-    f.close()
-gcode_file_name, gcode_file_extension = os.path.splitext(gcode_file_path)
+gcode_permalink = 'https://raw.github.com/jwwyeth/REU-Data-Transfer-in-Smart-Environment/a697fe33f43893aadc6b876c61253096f296ff89/Duet_Saeid_thin_wall.gcode'  # replace with the permalink
+
+response = requests.get(gcode_permalink)
+gcode_file_data = response.content
+gcode_file_name, gcode_file_extension = os.path.splitext('Duet_Saeid_thin_wall.gcode')
 
 file_start_time=time.perf_counter()
 cipherAM1gcode = AES.new(hashed_sesskey, AES.MODE_OFB,iv)
@@ -278,14 +278,11 @@ print('Sending time for gcode file to AMDT1: ',round((file_end_time-file_start_t
 
 print('-----Sending ngc file TO AMDT1-----')
 #conn,data,extension,hashedkey,iv
-ngc_file_path ='C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\s1s2 byte comparions 3-ways - files\\new2_Praneeth_Trial.ngc'
+ngc_permalink = 'https://raw.github.com/jwwyeth/REU-Data-Transfer-in-Smart-Environment/a697fe33f43893aadc6b876c61253096f296ff89/new2_Praneeth_Trial.ngc'  # replace with the permalink
 
-with open(ngc_file_path, 'rb') as f:
-    ngc_file_data = f.read()
-    f.close()
-
-ngc_file_name, ngc_file_extension = os.path.splitext(ngc_file_path)
-
+response = requests.get(ngc_permalink)
+ngc_file_data = response.content
+ngc_file_name, ngc_file_extension = os.path.splitext('new2_Praneeth_Trial.ngc')
 file_start_time=time.perf_counter()
 
 cipherAM1ngc = AES.new(hashed_sesskey, AES.MODE_OFB,iv)
@@ -293,5 +290,6 @@ send_file(AMDT1_socket,ngc_file_data,ngc_file_extension,hashed_sesskey,iv,cipher
 file_end_time=time.perf_counter()
 print('.ngc file sent to AMDT1')
 print('Sending time for ngc file to AMDT1: ',round((file_end_time-file_start_time)*1000, 5), 'milliseconds\n')
+
 
 
