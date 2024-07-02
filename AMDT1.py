@@ -340,7 +340,7 @@ AM1_AM_socket.bind(ADDR)
 AM1_AM_socket.listen()
 AM1,address=AM1_AM_socket.accept()
 Stage_2_start_time=time.perf_counter()
-#print('-----DTSMAKA-2 AMDT1-AM1------------')
+print('-----DTSMAKA-2 AMDT1-AM1------------')
 PUBAM=AM1.recv(1024).decode()
 AM1.sendall(str(Pub).encode())
 #step AMA1
