@@ -3,10 +3,7 @@ import time
 import subprocess
 import socket
 
-# Set the file paths and machine names
-REpath="RE.py"
-print("Running RE...")
-os.system(f"start cmd /k python \"{REpath}\"")
+
 
 
 
@@ -17,12 +14,15 @@ os.system(f"start cmd /k python \"{REpath}\"")
 #green_flag_socket.listen()
 #greenflag,address=green_flag_socket.accept()
 #print('connected to', address)
+# Set the file paths and machine names
+REpath="FILE PATH OF RE GOES HERE"
+amdt1_path = 'FILE PATH OF AMDT1 GOES HERE'
+amdt2_path = 'FILE PATH OF AMDT2 GOES HERE'
+am1_path = 'FILE PATH OF AM1 GOES HERE'
+am2_path = 'FILE PATH OF AM2 GOES HERE'
 
-amdt1_path = "C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\data  no shown\\AMDT1.py"
-amdt2_path = "C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\data  no shown\\AMDT2.py"
-am1_path = "C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\data  no shown\\AM1.py"
-am2_path = "C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\data  no shown\\AM2.py"
-
+print("Running RE...")
+os.system(f"start cmd /k python \"{REpath}\"")
 # Set the number of iterations
 num_iterations = 1
 
