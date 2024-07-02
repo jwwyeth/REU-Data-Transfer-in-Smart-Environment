@@ -97,7 +97,7 @@ print('Registration time for AM2: ',round((registry_end_time-registry_start_time
 #'10.106.95.180'
 #connect to AMDT2
 AMDT2_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ADDR='10.106.95.180',9090
+ADDR=socket.gethostbyname(socket.gethostname()),9090
 AMDT2_socket.connect(ADDR)
 Stage_2_start_time=time.perf_counter()
 
