@@ -16,7 +16,7 @@ import os
 PORT=5050
 HEADER=64
 FORMAT='utf-8'
-SERVER=socket.gethostbyname(socket.gethostname())
+SERVER='INSERT DESIRED IP ADDRESS OF RE HERE"
 #print(socket.gethostbyname(socket.gethostname()))
 ADDR=(SERVER,PORT)
 
@@ -295,7 +295,7 @@ print('Registration time for AMDT1: ',round((registry_end_time-registry_start_ti
 
 #step ADT1
 AMDT1_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ADDR=socket.gethostbyname(socket.gethostname()),8080
+ADDR='INSERT IP ADDRESS OF AMDT1 HERE',8080
 AMDT1_socket.bind(ADDR)
 AMDT1_socket.listen()
 connection,address=AMDT1_socket.accept()
@@ -328,7 +328,7 @@ print('session key AMDT1-AMDT2:\n',sessionkeyDT,'\n\n')
 
 #STAGe 2 DT_AM
 AM1_AM_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ADDR=socket.gethostbyname(socket.gethostname()),7070
+ADDR='INSERT IP ADDRESS OF ADT1 HERE,7070
 AM1_AM_socket.bind(ADDR)
 AM1_AM_socket.listen()
 AM1,address=AM1_AM_socket.accept()
