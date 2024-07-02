@@ -47,7 +47,7 @@ class Server:
     def __init__(self, port):
         self.port = port
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((socket.gethostbyname(socket.gethostname()), self.port))
+        self.server.bind(('INSERT IP ADDRESS OF RE HERE', self.port))
         self.machine_data = []
 
     def start(self):
