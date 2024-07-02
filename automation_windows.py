@@ -37,12 +37,12 @@ for i in range(num_iterations):
     # Run AMDT2 on the Mac machine
     print("Running AMDT2...")
     
-    #os.system(f"start cmd /k python \"{amdt2_path}\"")
+    os.system(f"start cmd /k python \"{amdt2_path}\"")
     
     # Run AM1 on the Mac machine
     print("Running AM1...")
 
-    #os.system(f"start cmd /k python \"{am1_path}\"")
+    os.system(f"start cmd /k python \"{am1_path}\"")
  
     # Run AM2
     #greenflag.recv(1024).decode()
