@@ -4,7 +4,7 @@ import subprocess
 import socket
 
 # Set the file paths and machine names
-REpath="C:\\Users\\Pikmi\\OneDrive\\Desktop\\Research test code\\data  no shown\\RE.py"
+REpath="RE.py"
 print("Running RE...")
 os.system(f"start cmd /k python \"{REpath}\"")
 
