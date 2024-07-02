@@ -12,7 +12,7 @@ from Crypto.Cipher import AES
 PORT=5050
 HEADER=64
 FORMAT='utf-8'
-SERVER=socket.gethostbyname(socket.gethostname())
+SERVER='INSERT IP ADDRESS OF RE HERE'
 ADDR=(SERVER,PORT)
 
 
@@ -97,7 +97,7 @@ print('Registration time for AM2: ',round((registry_end_time-registry_start_time
 #'10.106.95.180'
 #connect to AMDT2
 AMDT2_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ADDR=socket.gethostbyname(socket.gethostname()),9090
+ADDR='INSERT IP ADDRESS OF AMDT2 HERE',9090
 AMDT2_socket.connect(ADDR)
 Stage_2_start_time=time.perf_counter()
 
