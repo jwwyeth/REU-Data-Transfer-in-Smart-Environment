@@ -8,6 +8,7 @@ from tinyec.ec import Point
 import secrets
 from Crypto.Cipher import AES
 import os
+import requests
 
 
 PORT=5050
