@@ -13,7 +13,7 @@ import os
 PORT=5050
 HEADER=64
 FORMAT='utf-8'
-SERVER=socket.gethostbyname(socket.gethostname())
+SERVER='INSERT IP ADDRESS OF RE HERE'
 ADDR=(SERVER,PORT)
 
 
@@ -88,7 +88,7 @@ print('Registration time for AM1: ',round((registry_end_time-registry_start_time
 
 #connect to AMDT1
 AMDT1_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ADDR=socket.gethostbyname(socket.gethostname()),7070
+ADDR='INSERT IP ADDRESS OF AMDT1 HERE',7070
 AMDT1_socket.connect(ADDR)
 Stage_2_start_time=time.perf_counter()
 
