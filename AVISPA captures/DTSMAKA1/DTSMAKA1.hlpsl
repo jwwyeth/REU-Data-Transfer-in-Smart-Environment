@@ -1,0 +1,366 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DTSMAKA-1 Authentication Phase
+
+%%%%%%%%%%%%% Role for RE %%%%%%%%%%%%% 
+role registry(RE, DT1, DT2: agent,
+	      SKredt1,SKredt2: symmetric_key,
+	       H: hash_func,
+	      Snd, Rcv: channel(dy))
+
+%verify that the values here are all that need to be
+%RE NEEDS A PUB KEY DENOTED AS PUBRE
+
+played_by RE
+def=
+	local State: nat,
+	Emul: hash_func,
+	E: hash_func,
+	PRRE, PUBRE, Prs1, Pubs1, Prs2, Pubs2, G_low:text,
+	IDA1, TIDA1, SA1, RIDA1,RTA1: text,
+	IDA2, TIDA2, SA2, RIDA2,RTA2: text
+
+	const sp1, sp2, sp3, sp4: protocol_id
+
+init State:=0
+transition
+%registration between DT1 and RE / DT2 and RE starts here
+
+1.State=0 /\ Rcv(start) =|>
+   State':=1 /\ G_low':= new()
+	/\ PRRE':=new()
+
+	/\ PUBRE':=E(G_low'.PRRE')
+
+
+%%%%%%%%DT1 registration%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+		/\ RTA1':=new() /\ SA1':=new() /\ RIDA1':= H(IDA1.SA1'.RTA1')
+		%hash TID 
+		/\ TIDA1':=H(RIDA1'.PUBRE'.SA1'.RTA1')
+%generate private key and public key
+		/\ Prs1':=new() /\ Pubs1':=E(G_low. Prs1')
+%send data to DT1
+		/\ Snd({RIDA1'.TIDA1'.Prs1'.E(G_low. Prs1').G_low'.PUBRE'}_ SKredt1)
+%secret of ID and random val for RE		
+		/\ secret({IDA1, SA1',PRRE'}, sp1, {RE})
+%secetret of private key between RE and DT
+		/\ secret ({Prs1'}, sp2, {DT1,RE})
+		
+%RID=  H(IDA1.SA1'.RTA1')
+%TID =  H(RIDA1'.PUBRE'.SA1'.RTA1')
+%PUB= E(G_low'. Prs1')
+
+%%%%%%%%%%%%%%DT2 registration%%%%%%%%%%%%%%%%%%%%%
+		/\ RTA2':=new() /\ SA2':=new() /\ RIDA2':= H(IDA2.SA2'.RTA2')
+		%hash TID 
+		/\ TIDA2':=H(RIDA2'.PUBRE'.SA2'.RTA2')
+%generate private key and public key
+		/\ Prs2':=new() /\ Pubs2':=E(G_low'. Prs2')
+%send data to DT2
+		/\ Snd({RIDA2'.TIDA2'.Prs2'.E(G_low'. Prs2').G_low'.PUBRE'}_ SKredt2)
+%secret of ID and random val for RE		AND PRIVATE KEY OF RE 
+		/\ secret({IDA2, SA2',PRRE}, sp3, {RE})
+%secetret of private key between RE and DT
+		/\ secret ({Prs2'}, sp4, {DT2,RE})
+
+end role
+
+
+
+%%%%%%%%ROLE FOR DT1%%%%%%%%%%%%
+role dt1(RE,DT1,DT2:agent,
+	SKredt1: symmetric_key,
+	H:hash_func,
+	Snd,Rcv:channel(dy))
+
+played_by DT1
+
+def=
+	local State:nat,
+	E:hash_func,
+	Emul: hash_func,
+%RID = RA1 and SAI and IDA1
+%TID= RID AND SA1 AND Pub and RTA1
+%received from RE
+	G_low,IDA1, SA1, PUBRE,PRRE,Prs1,Pubs1,RA1, RIDA1, RTA1,TIDA1: text,
+%created in DT1
+	T1,R_low,R1, L1,V1,T3,SAD1A,SAD1B,V3,T5,V4,K2,V6,SKA1A2,Z1,X2,Y2:text,
+%received from DT2
+	IDA2,RIDA2,SA2,RTA2,Pubs2,Prs2,L2,V2,
+	T2,TR2,K1,V5,T4,SAD2A,SAD2B,Z2,V7,T6,X1,Y1,R_low2:text
+
+const sp5,dt1_dt2_T1, dt1_dt2_V1, dt2_dt1_T2,dt2_dt1_V2, dt1_dt2_T3, dt1_dt2_V3, dt1_dt2_SAD1A, dt1_dt2_SAD1B, dt2_dt1_T4, dt2_dt1_V4,dt2_dt1_L2, dt1_dt2_T5,dt1_dt2_V6,dt2_dt1_T6, dt2_dt1_SAD2A,dt2_dt1_SAD2B,dt2_dt1_V7  : protocol_id
+
+
+init State:=0
+transition
+%TID =  H(RIDA1'.PUBRE'.SA1'.RTA1')
+
+%replace TIDA1 with  H(H(IDA1.SA1'.RTA1').E(G_low'. Prs1').SA1'.RTA1')
+%replace RIDA1 with H(IDA1.SA1'.RTA1')
+ %REPALCE PUBRE' WITH E(G_low'.PRRE')
+%OVERALL IS RCV{RID,TID,PR,PUB,g}
+%not concerned with p or q
+1.State= 0 /\ Rcv({ H(IDA1.SA1'.RTA1').H(H(IDA1.SA1'.RTA1').E(G_low'.PRRE').SA1'.RTA1').Prs1'.E(G_low'. Prs1').G_low'.PUBRE'}_ SKredt1)
+=|>
+State':=1
+%R1=E(G_low'.R_low')
+	/\R_low':=new() /\T1':=new()
+	/\ secret({R_low'},sp5,{DT1})	
+	/\ R1':=E(G_low'.R_low')
+	/\ L1':=E(E(G_low'.R_low').Prs1')
+%V1=H(TID,L1,R1)
+	/\ V1':=H(H(E(G_low'.R_low').PUBRE'.SA1'.RTA1').E(E(G_low'.R_low').Prs1').E(G_low'.R_low'))
+
+	/\ Snd(TIDA1.L1'.R1'.V1'.T1')
+%witness
+	%/\ witness(DT1,DT2,dt1_dt2_R_low,R_low')
+	/\ witness(DT1, DT2, dt1_dt2_T1, T1')
+	/\ witness(DT1,DT2,dt1_dt2_V1,V1')
+%L2=Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))
+%V2=Emul(Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1')).T2')
+%T2=T2'
+2.State = 1 /\ Rcv(Emul(E(E(G_low'.R_low').X1').E(G_low'.Y1')).
+Emul(Emul(E(E(G_low'.R_low').X1').E(G_low'.Y1')).T2')
+.T2')
+=|>State':=2
+%check t2 and v2
+	
+	/\ request(DT2,DT1,dt2_dt1_T2,T2)
+	/\ request(DT2,DT1,dt2_dt1_V2,V2)
+	/\ request(DT2,DT1,dt2_dt1_L2,L2)
+%create Z1 and t3
+	/\ Z1':=new() /\ T3':=new()
+%had soem () issues here check later is persist
+%SAD1A= L2 * g^z1
+	/\ SAD1A':=Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) 
+			.(E(G_low'.Z1')))
+%SAD1A^Prs1
+	/\ SAD1B':=E((Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) .(E(G_low'.Z1'))).
+		   Prs1))
+%V3= H(SAD1A||SAD1B||Z1||R1) 
+	/\ V3':= H( (Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))).(E(G_low'.Z1')))).
+		    (E((Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) .(E(G_low'.Z1'))).Prs1)).
+ 		    (Z1'). (E(G_low'.R_low'))))
+
+
+%MSG3
+	/\Snd(SAD1A'.SAD1B'.Z1'.V3'.T3')
+%witness
+%dt1_dt2_T3, dt1_dt2_V3, dt1_dt2_SAD1A, dt1_dt2_SAD1B,
+	/\ witness(DT1,DT2,dt1_dt2_T3,T3')
+	/\ witness(DT1,DT2,dt1_dt2_V3,V3')
+	/\ witness(DT1,DT2,dt1_dt2_SAD1A,SAD1A')
+	/\ witness(DT1,DT2,dt1_dt2_SAD1B,SAD1B')
+%RCV (TIDA2, R2, K1, V4, V5, T4)
+%TIDA2= H(RIDA2'.PUBRE'.SA2'.RTA2')
+%R2= E(G_low'. R_low2')
+%K1= E(E(G_low'. R_low2').Prs2')
+%V4= H( (H(RIDA2'.PUBRE'.SA2'.RTA2')). (E(E(G_low'. R_low2').Prs2')). (E(G_low'. R_low2')))
+%SKA2A1= H((E(E(G_low'. R_low').R_low2')). (E(G_low'. R_low1').Prs2').T4' )
+%V5 = H ((H((E(E(G_low'. R_low').R_low2')). (E(G_low'. R_low1').Prs2').T4' )).T4')
+
+3.State=2 /\ Rcv((H(RIDA2'.PUBRE.SA2'.RTA2')).
+  (E(G_low'. R_low2')).
+  (E(E(G_low'. R_low2').Prs2')).
+  (H( (H(RIDA2'.PUBRE.SA2'.RTA2')). (E(E(G_low'. R_low2').Prs2')). (E(G_low'. R_low2')))).
+  (H ((H((E(E(G_low'. R_low').R_low2')). (E(G_low'. R_low').Prs2').T4' )).T4')).
+T4')
+%verify T4,V4, and L1
+%dt2_dt1_T4, dt2_dt1_V4,dt2_dt1_L2
+
+
+=|>State':=3
+	/\ request(DT2,DT1,dt2_dt1_T4,T4)
+	/\ request(DT2,DT1,dt2_dt1_V4,V4)
+
+
+	/\ X2':=new() /\ Y2':=new() /\T5':=new()
+%K2'=R2^X2*g^Y2
+	/\K2':=Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))
+%V6=H(K2|T5)
+	/\V6':=H((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))).T5')
+%MSG6(K2,V6,T5)
+	/\ Snd(K2'.V6'.T5')
+%witness
+%dt1_dt2_T5,dt1_dt2_V6,
+	/\ witness(DT1,DT2,dt1_dt2_T5,T5')
+	/\ witness(DT1,DT2,dt1_dt2_V6,V6')
+
+%Rcv(SAD2A,SAD2B,Z2,V7,T6)
+%SAD2A':=:=Emul(K2 * g^Z2)
+% == Emul((Emul(E(E(G_low'. R_low2').X2').E(G_low'.Y2'))). (E(G_low'.Z2')))
+
+%SAD2B':= E((Emul((Emul(E(E(G_low'. R_low2').X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(Prs2'))
+%V7:= H((Emul((Emul(E(E(G_low'. R_low2').X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(E((Emul((Emul(E(E(G_low'. R_low2').X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(Prs2'))). (Z2') .(E(G_low'. R_low2')) )
+%() error here
+4.State=3 /\ Rcv((Emul((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))). (E(G_low'.Z2')))). (E((Emul((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(Prs2'))) . (Z2'). (H((Emul((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(E((Emul((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))). (E(G_low'.Z2')))) .(Prs2'))). (Z2') .(E(G_low'. R_low2)) )) .(T6'))
+%dt2_dt1_T6, dt2_dt1_SAD2A,dt2_dt1_SAD2B,dt2_dt1_V7
+
+=|>State':=4
+	/\ request(DT2,DT1,dt2_dt1_T6,T6)
+	/\ request(DT2,DT1,dt2_dt1_SAD2A,SAD2A)
+	/\ request(DT2,DT1,dt2_dt1_SAD2B,SAD2B)	
+	/\ request(DT2,DT1,dt2_dt1_V7,V7)
+	
+%H(R2^R1||Pubs2^r1||R2^Prs1)
+	/\ SKA1A2':=H((E((E(G_low'. R_low2)).R_low)).(E(Pubs2.R_low)).(E( (E(G_low'. R_low2)).Prs1)))
+end role
+
+%%%%%%%%%%%%%%%%---DT2---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+role dt2(RE,DT1,DT2:agent,
+	SKredt2: symmetric_key,
+	H:hash_func,
+	Snd,Rcv:channel(dy))
+
+played_by DT2
+
+def=
+	local State:nat,
+	E:hash_func,
+	Emul: hash_func,
+%RID = RA1 and SAI and IDA1
+%TID= RID AND SA1 AND Pub and RTA1
+%received from RE
+	G_low,IDA2, SA2, PUBRE,PRRE,Prs2, Pubs2,RA2, RIDA2, RTA2,TIDA2: text,
+%Received from DT1
+	Pubs1,Prs1,T1,R_low,R1, L1,V1,T3,SAD1A,SAD1B, V3,T5,V4,K2,V6,Z1,X1,Y1,RIDA1,RTA1,TIDA1,SKA2A1:text,
+%created in  DT2
+	L2,V2,T2,R2,K1,V5,T4,SAD2A,SAD2B,Z2,V7,T6,R_low2,X2,Y2,SA1:text
+
+%protocol names
+const sp6,dt1_dt2_T1, dt1_dt2_V1, dt2_dt1_T2,dt2_dt1_V2, dt1_dt2_T3, dt1_dt2_V3, dt1_dt2_SAD1A, dt1_dt2_SAD1B, dt2_dt1_T4, dt2_dt1_V4,dt2_dt1_L2, t1_dt2_T5,dt1_dt2_V6,dt2_dt1_T6, dt2_dt1_SAD2A,dt2_dt1_SAD2B,dt2_dt1_V7  : protocol_id
+
+
+init State:=0
+transition
+%rcv from RE
+1.State= 0 /\ Rcv({ H(IDA2.SA2.RTA2).H(H(IDA2.SA2.RTA2).E(G_low.PRRE').SA2.RTA2).Prs2'.E(G_low. Prs2').G_low.PUBRE}_ SKredt2)
+%Rcv (TIDA1,L1,R1,V1,T1')
+	/\ Rcv((H(RIDA1'.PUBRE.SA1'.RTA1')) . (E(E(G_low.R_low).Prs1')) . (E(G_low.R_low)) . (H(H(RIDA1'.PUBRE.SA1'.RTA1').E(E(G_low.R_low).Prs1').E(G_low.R_low))) . T1')
+	
+	
+
+=|>State':=1
+	/\ request(DT2, DT1, dt1_dt2_T1, T1)
+	/\ request(DT1,DT2,dt1_dt2_V1,V1)
+	/\ X1':=new() /\ Y1':=new() /\T2':=new()
+%calc L2
+%L2=R1^X1 * G^Y1
+	/\ L2':=Emul(E(E(G_low.R_low).X1') . E(G_low.Y1'))
+%cal V2 = H(L2,T2)
+	/\ V2':=Emul(Emul(E(E(G_low.R_low).X1') . E(G_low.Y1')).T2')
+
+%send MSGAD2
+	/\ Snd((Emul(E(E(G_low.R_low).X1') . E(G_low.Y1'))). (Emul(Emul(E(E(G_low.R_low).X1') . E(G_low.Y1')).T2')). T2')
+%witness dt2_dt1_T2, dt2_dt1_V2,
+	/\ witness(DT2,DT1,dt2_dt1_T2,T2')
+	/\ witness(DT2,DT1,dt2_dt1_V2,V2')
+	/\ witness(DT2,DT1,dt2_dt1_L2,L2')
+
+2.State=1 
+%verify time, V3, and SAD values
+%dt2_dt1_T3, dt2_dt1_V3, dt2_dt1_SAD1A, dt2_dt1_SAD1B
+
+	/\ Rcv((Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) 
+			.(E(G_low'.Z1'))))
+.(E((Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) .(E(G_low'.Z1'))).
+		   Prs1)))
+.Z1'.(H( (Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))).(E(G_low'.Z1')))).
+		    (E((Emul( (Emul(E(E(G_low'.R_low').X1') . E(G_low'.Y1'))) .(E(G_low'.Z1'))).Prs1)).
+ 		    (Z1'). (E(G_low'.R_low'))))).T3')
+
+=|>State':=2
+	/\ request(DT1,DT2,dt1_dt2_T3,T3)
+	/\ request(DT1,DT2,dt1_dt2_V3,V3)
+	/\ request(DT1,DT2,dt1_dt2_SAD1A,SAD1A)
+	/\ request(DT1,DT2,dt1_dt2_SAD1B,SAD1B)
+%create r2, R2,SKA2A1 K1 V4
+	/\ R_low2':=new() /\ T4':=new()
+	/\ secret({R_low2},sp6,{DT2})
+	/\ R2':=E(G_low. R_low2)
+	/\ SKA2A1':= H((E(E(G_low. R_low).R_low2)). (E(G_low. R_low).Prs2).T4' )
+	/\ K1':=E(E(G_low. R_low2).Prs2)
+	/\ V4':=H( (H(RIDA2.PUBRE.SA2.RTA2)). (E(E(G_low. R_low2).Prs2)). (E(G_low. R_low2)))
+	/\ V5':=H ((H((E(E(G_low. R_low).R_low2)). (E(G_low. R_low).Prs2).T4' )).T4')
+%send MSG4
+	/\ Snd((H(RIDA2.PUBRE.SA2.RTA2)).(E(G_low. R_low2)).(E(E(G_low. R_low2).Prs2)).(H( (H(RIDA2.PUBRE.SA2.RTA2)). (E(E(G_low. R_low2).Prs2)). (E(G_low. R_low2)))).(H ((H((E(E(G_low. R_low).R_low2)). (E(G_low. R_low).Prs2).T4' )).T4')).
+T4')
+%verify 
+
+ 	/\ witness(DT2,DT1,dt2_dt1_T4,T4')
+	/\ witness(DT2,DT1,dt2_dt1_V4,V4')
+	
+
+
+3.State=2 
+%verify time, V6 values
+%dt2_dt1_T5, dt2_dt1_V6
+	/\ Rcv((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))).(H((Emul(E(E(G_low'. R_low2).X2').E(G_low'.Y2'))).T5')).T5')
+
+
+=|>State':=2
+	/\ request(DT1,DT2,dt1_dt2_T5,T5)
+	/\ request(DT1,DT2,dt1_dt2_V6,V6)
+
+	/\ Z2':=new() /\ T6':=new()
+	/\ SAD2A':=Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))
+	/\ SAD2B':=E((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(Prs2))
+	/\ V7':=H((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(E((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(Prs2))). (Z2') .(E(G_low. R_low2)) )
+
+	/\ Snd((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))). (E((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(Prs2))) . (Z2'). (H((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(E((Emul((Emul(E(E(G_low. R_low2).X2).E(G_low.Y2))). (E(G_low.Z2')))) .(Prs2))). (Z2') .(E(G_low. R_low2)) )) .(T6'))
+%verify T6, SAD2 values
+%dt2_dt1_t6, dt2_dt1_SAD2A, dt2_dt1_SAD2B
+	/\ witness(DT2,DT1,dt2_dt1_T6,T6')
+	/\ witness(DT2,DT1,dt2_dt1_SAD2A,SAD2A')
+	/\ witness(DT2,DT1,dt2_dt1_SAD2B,SAD2B')
+	/\ witness(DT2,DT1,dt2_dt1_V7,V7')
+
+end role
+%%%%%%%%%%%%%%%%%---SESSION---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+role session(RE, DT1, DT2: agent,
+		H: hash_func)
+
+def=
+	local REs, REr, DT1s, DT1r, DT2s, DT2r: channel(dy),
+	SKredt1, SKredt2: symmetric_key
+	
+	composition
+		registry(RE,DT1,DT2,SKredt1,SKredt2,(H),REs,REr)
+	     /\ dt1(RE,DT1,DT2,SKredt1,H,DT1s,DT1r)
+	     /\ dt2(RE,DT1,DT2,SKredt2,H,DT2s,DT2r)
+		
+end role
+
+
+
+%%%%%%%%%%%%%%%%%---ENVIRONMENT---%%%%%%%%%%%%%%%%%%%%%%%%%%%
+role environment()
+def=
+const reauth, dt1, dt2: agent,
+		h,e,emul: hash_func,
+		
+		t1,t2,t3,t4,t5,t6:text,
+sp1,sp2,sp3,sp4,sp5,sp6, dt1_dt2_T1, dt1_dt2_V1, dt2_dt1_T2,dt2_dt1_V2, dt1_dt2_T3, dt1_dt2_V3, dt1_dt2_SAD1A, dt1_dt2_SAD1B, dt2_dt1_T4, dt2_dt1_V4,dt2_dt1_L2, dt1_dt2_T5,dt1_dt2_V6,dt2_dt1_T6, dt2_dt1_SAD2A,dt2_dt1_SAD2B,dt2_dt1_V7 : protocol_id
+
+intruder_knowledge={reauth,dt1,dt2,h,e,emul,t1,t2,t3,t4,t5,t6}
+
+%more goes here
+
+composition
+%replay
+	session(reauth,dt1,dt2,h)
+	/\ session(reauth,dt1,dt2,h)
+%MiTM
+	/\ session(reauth,i,dt2,h)
+	/\ session(reauth,dt1,i,h)
+
+
+end role
+%%%%%%%%%%%%%%%%%---GOAL---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+goal
+	secrecy_of sp1,sp2,sp3,sp4,sp5,sp6
+		authentication_on dt1_dt2_T1, dt1_dt2_V1, dt2_dt1_T2,dt2_dt1_V2, dt1_dt2_T3, dt1_dt2_V3, dt1_dt2_SAD1A, dt1_dt2_SAD1B, dt2_dt1_T4, dt2_dt1_V4,dt2_dt1_L2, dt1_dt2_T5,dt1_dt2_V6,dt2_dt1_T6, dt2_dt1_SAD2A,dt2_dt1_SAD2B,dt2_dt1_V7 
+end goal
+
+%%%%%%%%%%%%%%%%%---call---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+environment()
